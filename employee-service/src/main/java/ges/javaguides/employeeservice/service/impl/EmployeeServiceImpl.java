@@ -3,6 +3,7 @@ package ges.javaguides.employeeservice.service.impl;
 import ges.javaguides.employeeservice.dto.APIResponseDto;
 import ges.javaguides.employeeservice.dto.DepartmentDto;
 import ges.javaguides.employeeservice.dto.EmployeeDto;
+import ges.javaguides.employeeservice.dto.OrganizationDto;
 import ges.javaguides.employeeservice.entity.Employee;
 import ges.javaguides.employeeservice.mapper.EmployeeMapper;
 import ges.javaguides.employeeservice.repository.EmployeeRepository;
@@ -30,7 +31,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private WebClient webClient;
 
-    // private APIClient apiClient;
+    private APIClient apiClient;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -58,6 +59,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 //
 //        DepartmentDto departmentDto = responseEntity.getBody();
 
+        // Communicating with Department Service using WebClient
         DepartmentDto departmentDto = webClient.get()
                 .uri("http://localhost:8080/api/departments/" + employee.getDepartmentCode())
                 .retrieve()
@@ -66,11 +68,18 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // DepartmentDto departmentDto = apiClient.getDepartment(employee.getDepartmentCode());
 
+        OrganizationDto organizationDto = webClient.get()
+                .uri("http://localhost:8083/api/organizations/code/" + employee.getOrganizationCode())
+                .retrieve()
+                .bodyToMono(OrganizationDto.class)
+                .block();
+
         EmployeeDto employeeDto = EmployeeMapper.mapToEmployeeDto(employee);
 
         APIResponseDto apiResponseDto = new APIResponseDto();
         apiResponseDto.setEmployee(employeeDto);
         apiResponseDto.setDepartment(departmentDto);
+        apiResponseDto.setOrganization(organizationDto);
 
         return apiResponseDto;
     }
